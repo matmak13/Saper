@@ -18,7 +18,7 @@ Board::Board(int16_t Xsize, int16_t Ysize, int16_t mines) :
 	// generete random mines
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	const std::uniform_int_distribution<> distX(0, Xsize - 1), distY(0, Ysize - 1);
+	std::uniform_int_distribution<> distX(0, Xsize - 1), distY(0, Ysize - 1);
 
 	int numOfMines = 0;
 	while (numOfMines < mines)
