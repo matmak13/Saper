@@ -204,7 +204,7 @@ void Game::GameOver(bool win)
 	timerThread_.join();
 
 	win_ = win;
-	if(!win)
+	if (!win)
 		BlowUp();
 }
 
@@ -278,17 +278,23 @@ void Game::BlowUp()
 
 	COORD leftTop = cursor_, rightBot = cursor_;
 	int booms = 0;
+	std::vector boomed(board_.ysize_, std::vector<bool>(board_.xsize_));
 
-	while (booms < (board_.xsize_ + 1) * board_.ysize_)
+	while (booms < board_.xsize_ * board_.ysize_)
 	{
-		const auto explode = [this, &booms](const int16_t start, const int16_t end, const bool horizontal, const int16_t cord)
+		const auto explode = [this, &booms, &boomed](const int16_t start, const int16_t end, const bool horizontal, const int16_t cord)
 		{
 			for (int16_t i = start; i <= end; i++)
 			{
+				auto bomed = horizontal ? boomed[cord - 1][i - 1] : boomed[i - 1][cord - 1];
+				if (bomed)
+					continue;
+
 				const Cell& cell = horizontal ? board_.board_[cord - 1][i - 1] : board_.board_[i - 1][cord - 1];
 				SetConsoleCursorPosition(hConsole, {cell.x + 1, cell.y + 1});
 				std::cout << "*";
 				booms++;
+				bomed = true;
 			}
 		};
 
