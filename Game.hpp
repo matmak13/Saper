@@ -32,17 +32,18 @@ private:
 	void CheckSwitch();
 	void RevealCell();
 	void PrintCell(COORD pos);
-	void PrintMinesLeft();
+	void PrintMinesLeft(bool clear);
 
 	void GameOver(bool win);
+	void BlowUp();
 
 	void StartTimer();
 	void Timer();
-	void PrintTimer();
+	void PrintTimer(bool clear);
 public:
 	Game(int16_t Xsize, int16_t Ysize, int16_t mines);
 
 	void RevealBoard();
-	void DisplayBoard();
+	void DisplayBoard(bool clear);
 	std::tuple<bool, int32_t> Start();
 };

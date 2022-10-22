@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <iostream>
 #include <random>
+#include "Alfabet.hpp"
 
 
 Game::Game(int16_t Xsize, int16_t Ysize, int16_t mines) :
@@ -20,7 +21,7 @@ void Game::RevealBoard()
 	board_.RevealBoard();
 }
 
-void Game::DisplayBoard()
+void Game::DisplayBoard(bool clear)
 {
 	displayMutex_.lock();
 	for (int16_t i = 0; i <= board_.ysize_ + 1; i++)
@@ -28,11 +29,16 @@ void Game::DisplayBoard()
 		for (int16_t j = 0; j <= board_.xsize_ + 1; j++)
 		{
 			SetConsoleCursorPosition(hConsole, {j, i});
+			if (clear)
+			{
+				std::cout << " ";
+				continue;
+			}
 
 			if (i == 0 || i == board_.ysize_ + 1 || j == 0 || j == board_.xsize_ + 1)
 			{
 				SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-				std::cout << 'Û';
+				std::cout << Alfabet::BLOCK;
 				continue;
 			}
 
@@ -40,9 +46,9 @@ void Game::DisplayBoard()
 		}
 	}
 
-	PrintMinesLeft();
+	PrintMinesLeft(clear);
 	displayMutex_.unlock();
-	PrintTimer();
+	PrintTimer(clear);
 }
 
 std::tuple<bool, int32_t> Game::Start()
@@ -107,7 +113,7 @@ void Game::CheckSwitch()
 
 	displayMutex_.lock();
 	PrintCell(cursor_);
-	PrintMinesLeft();
+	PrintMinesLeft(false);
 	displayMutex_.unlock();
 }
 
@@ -189,7 +195,7 @@ void Game::PrintCell(COORD pos)
 			cell.minesAround > 0 ? std::cout << cell.minesAround : std::cout << ' ';
 	}
 	else
-		std::cout << 'Û';
+		std::cout << Alfabet::BLOCK;
 }
 
 void Game::GameOver(bool win)
@@ -198,17 +204,23 @@ void Game::GameOver(bool win)
 	timerThread_.join();
 
 	win_ = win;
+	if(!win)
+		BlowUp();
 }
 
-void Game::PrintMinesLeft()
+void Game::PrintMinesLeft(bool clear)
 {
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
 	SetConsoleCursorPosition(hConsole, checkedCellsPos_);
-	std::cout << "MINY";
+	if (clear)
+		std::cout << "    ";
+	else
+		std::cout << "MINY";
 	SetConsoleCursorPosition(hConsole, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
 	std::cout << "  ";
 	SetConsoleCursorPosition(hConsole, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
-	std::cout << minesLeft_;
+	if (!clear)
+		std::cout << minesLeft_;
 
 	SetConsoleTextAttribute(hConsole, 7);
 	SetConsoleCursorPosition(hConsole, cursor_);
@@ -222,21 +234,31 @@ void Game::Timer()
 			break;
 
 		time++;
-		PrintTimer();
+		PrintTimer(false);
 
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for(1000ms);
 	}
+
+	PrintTimer(true);
 }
 
-void Game::PrintTimer()
+void Game::PrintTimer(bool clear)
 {
 	displayMutex_.lock();
 	SetConsoleTextAttribute(hConsole, 7);
 	SetConsoleCursorPosition(hConsole, timerPos_);
-	std::cout << "Czas";
+	if (clear)
+		std::cout << "    ";
+	else
+		std::cout << "Czas";
+
 	SetConsoleCursorPosition(hConsole, {timerPos_.X, timerPos_.Y + 1});
-	std::cout << time;
+	if (clear)
+		std::cout << "     ";
+	else
+		std::cout << time;
+
 	SetConsoleCursorPosition(hConsole, cursor_);
 	displayMutex_.unlock();
 }
@@ -244,4 +266,44 @@ void Game::PrintTimer()
 void Game::StartTimer()
 {
 	timerThread_ = std::thread(&Game::Timer, this);
+}
+
+void Game::BlowUp()
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dist(25, 50);
+	SetConsoleTextAttribute(hConsole, 7);
+	const auto mines = board_.allMines_;
+
+	COORD leftTop = cursor_, rightBot = cursor_;
+	int booms = 0;
+
+	while (booms < (board_.xsize_ + 1) * board_.ysize_)
+	{
+		const auto explode = [this, &booms](const int16_t start, const int16_t end, const bool horizontal, const int16_t cord)
+		{
+			for (int16_t i = start; i <= end; i++)
+			{
+				const Cell& cell = horizontal ? board_.board_[cord - 1][i - 1] : board_.board_[i - 1][cord - 1];
+				SetConsoleCursorPosition(hConsole, {cell.x + 1, cell.y + 1});
+				std::cout << "*";
+				booms++;
+			}
+		};
+
+		explode(leftTop.X, rightBot.X, true, leftTop.Y);
+		explode(leftTop.X, rightBot.X, true, rightBot.Y);
+		explode(leftTop.Y, rightBot.Y, false, leftTop.X);
+		explode(leftTop.Y, rightBot.Y, false, rightBot.X);
+
+		using namespace std::chrono_literals;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(dist(gen)));
+
+		if (leftTop.X - 1 > 0)leftTop.X--;
+		if (leftTop.Y - 1 > 0)leftTop.Y--;
+		if (rightBot.X + 1 <= board_.xsize_)rightBot.X++;
+		if (rightBot.Y + 1 <= board_.ysize_)rightBot.Y++;
+	}
 }
