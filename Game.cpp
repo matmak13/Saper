@@ -20,7 +20,7 @@ void Game::RevealBoard()
 	board_.RevealBoard();
 }
 
-void Game::GenerateBoard()
+void Game::DisplayBoard()
 {
 	displayMutex_.lock();
 	for (int16_t i = 0; i <= board_.ysize_ + 1; i++)

@@ -43,6 +43,6 @@ public:
 	Game(int16_t Xsize, int16_t Ysize, int16_t mines);
 
 	void RevealBoard();
-	void GenerateBoard();
+	void DisplayBoard();
 	std::tuple<bool, int32_t> Start();
 };
