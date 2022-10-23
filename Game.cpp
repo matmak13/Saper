@@ -130,11 +130,11 @@ void Game::RevealCell()
 		PrintCell({cell.x + 1, cell.y + 1});
 	revealedCells_ += cells.size();
 
-	if (revealedCells_ == board_.ysize_ * board_.xsize_ - board_.mines_)
-		GameOver(true);
-
 	SetConsoleCursorPosition(hConsole, {cursor_.X + 1, cursor_.Y});
 	displayMutex_.unlock();
+
+	if (revealedCells_ == board_.ysize_ * board_.xsize_ - board_.mines_)
+		GameOver(true);
 }
 
 Cell Game::getCell(COORD pos)
@@ -228,11 +228,8 @@ void Game::PrintMinesLeft(bool clear)
 
 void Game::Timer()
 {
-	while (true)
+	while (!gameEnded_)
 	{
-		if (gameEnded_)
-			break;
-
 		time++;
 		PrintTimer(false);
 
