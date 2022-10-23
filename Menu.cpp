@@ -2,7 +2,14 @@
 
 #include <conio.h>
 #include <iostream>
+#include <string>
+
 #include "Alfabet.hpp"
+
+Menu::Menu()
+{
+	activeMenu_ = menu_;
+}
 
 void Menu::Display(bool clear) const
 {
@@ -105,6 +112,18 @@ void Menu::StartGame()
 	auto game = Game(x, y, mines);
 	game.DisplayBoard(false);
 	auto [win, time] = game.Start();
+	game.DisplayBoard(true);
 
-	throw std::runtime_error("dupa");
+	PrintGameOver(false, win, time);
+}
+
+void Menu::PrintGameOver(bool clear, bool win, int time)
+{
+	const std::string result = win ? "rozbrojone" : "game over";
+	Print(result, {15, 6}, NULL, clear);
+	if (win)
+		Print("twoj czas " + std::to_string(time), {15, 12}, NULL, clear);
+
+	activeMenu_ = gameOverMenu_;
+	cursor_ = 0;
 }

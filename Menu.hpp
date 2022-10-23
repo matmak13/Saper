@@ -17,30 +17,23 @@ private:
 	};
 
 	uint32_t cursor_ = 0;
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>>& activeMenu_ = menu_;
+	std::vector<std::tuple<std::string, COORD, std::function<void()>>> activeMenu_;
 	std::vector<std::tuple<std::string, COORD, std::function<void()>>> menu_{
 		{
 			"start", COORD(15, 6), [this]
 			{
 				this->Display(true);
-				this->activeMenu_ = this->difficultyMenu;
+				this->activeMenu_ = this->difficultyMenu_;
 			}
 		},
 		{
-			"opcje", COORD(15, 12), [this]
-			{
-				this->Display(true);
-				//this->activeMenu_ = this->settingsMenu;
-			}
-		},
-		{
-			"wyjscie", COORD(12, 18), [this]
+			"wyjscie", COORD(12, 12), [this]
 			{
 				exit(0);
 			}
 		},
 	};
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> difficultyMenu{
+	std::vector<std::tuple<std::string, COORD, std::function<void()>>> difficultyMenu_{
 		{
 			"latwy", COORD(14, 6), [this]
 			{
@@ -63,15 +56,25 @@ private:
 			}
 		},
 	};
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> settingsMenu{};
+	std::vector<std::tuple<std::string, COORD, std::function<void()>>> gameOverMenu_{
+		{
+			"wyjscie", COORD(15, 18), [this]
+			{
+				this->Display(true);
+				this->PrintGameOver(true, true, INT32_MAX);
+				this->activeMenu_ = this->menu_;
+			}
+		},
+	};
 
 	std::vector<std::vector<bool>> StringToBlocks(const std::string& str) const;
 	void Print(const std::string& str, COORD startingPos, WORD consoleAtribute, bool clear) const;
 	void Display(bool clear) const;
 	void Use() const;
 	void StartGame();
+	void PrintGameOver(bool clear, bool win, int time);
 public:
-	Menu() = default;
+	Menu();
 
 	void Start();
 };
