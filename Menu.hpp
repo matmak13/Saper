@@ -23,17 +23,24 @@ private:
 			"start", COORD(15, 6), [this]
 			{
 				this->Display(true);
-				this->activeMenu_ = this->opcje_;
+				this->activeMenu_ = this->difficultyMenu;
 			}
 		},
 		{
-			"wyjscie", COORD(12, 12), [this]
+			"opcje", COORD(15, 12), [this]
+			{
+				this->Display(true);
+				//this->activeMenu_ = this->settingsMenu;
+			}
+		},
+		{
+			"wyjscie", COORD(12, 18), [this]
 			{
 				exit(0);
 			}
 		},
 	};
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> opcje_{
+	std::vector<std::tuple<std::string, COORD, std::function<void()>>> difficultyMenu{
 		{
 			"latwy", COORD(14, 6), [this]
 			{
@@ -56,6 +63,7 @@ private:
 			}
 		},
 	};
+	std::vector<std::tuple<std::string, COORD, std::function<void()>>> settingsMenu{};
 
 	std::vector<std::vector<bool>> StringToBlocks(const std::string& str) const;
 	void Print(const std::string& str, COORD startingPos, WORD consoleAtribute, bool clear) const;
