@@ -103,7 +103,7 @@ void Menu::StartGame()
 
 	auto [x, y, mines] = levels_[level_];
 	auto game = Game(x, y, mines);
-	game.GenerateBoard();
+	game.DisplayBoard(false);
 	auto [win, time] = game.Start();
 
 	throw std::runtime_error("dupa");
