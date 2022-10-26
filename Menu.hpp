@@ -58,7 +58,7 @@ private:
 	};
 	std::vector<std::tuple<std::string, COORD, std::function<void()>>> gameOverMenu_{
 		{
-			"wyjscie", COORD(15, 18), [this]
+			"wyjscie", COORD(12, 18), [this]
 			{
 				this->Display(true);
 				this->PrintGameOver(true, true, INT32_MAX);
