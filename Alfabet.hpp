@@ -9,7 +9,7 @@ public:
 	constexpr static char BLOCK = -37;
 	using Letter = std::vector<std::vector<bool>>;
 
-	const std::map<char, std::vector<std::vector<bool>>> alfabet{
+	const std::map<char, Letter> alfabet{
 		{
 			NULL, {
 				{1, 1, 1},
@@ -26,6 +26,15 @@ public:
 				{1, 0, 0, 1},
 				{1, 1, 1, 1},
 				{1, 0, 0, 1},
+			}
+		},
+		{
+			'b', {
+				{1, 1, 1, 0},
+				{1, 0, 0, 1},
+				{1, 1, 1, 0},
+				{1, 0, 0, 1},
+				{1, 1, 1, 0},
 			}
 		},
 		{
@@ -301,5 +310,5 @@ public:
 		},
 	};
 
-	std::vector<std::vector<bool>> at(char) const;
+	Letter at(char) const;
 };
