@@ -124,7 +124,7 @@ void Menu::StartGame()
 void Menu::PrintGameOver(const bool clear, const bool win, const int time)
 {
 	const std::string result = win ? "rozbrojone" : "game over";
-	Print(result, {7, 6}, NULL, clear);
+	Print(result, {5, 6}, NULL, clear);
 	if (win)
 		Print("twoj czas " + std::to_string(time), {3, 12}, NULL, clear);
 
