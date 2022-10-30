@@ -104,6 +104,9 @@ void Game::MoveCursor(COORD newPosition)
 
 void Game::CheckSwitch()
 {
+	if (const auto& cell = getCell(cursor_); cell.isRevealed)
+		return;
+
 	board_.CheckSwitch(cursor_.X - 1, cursor_.Y - 1) ? minesLeft_-- : minesLeft_++;
 	if (minesLeft_ == -1)
 	{
