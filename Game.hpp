@@ -12,7 +12,8 @@ private:
 	COORD cursor_;
 	COORD checkedCellsPos_;
 	COORD timerPos_;
-	HANDLE hConsole;
+	COORD leftUpperCorner_;
+	HANDLE hConsole_;
 
 	Board board_;
 	int32_t revealedCells_ = 0;
@@ -22,7 +23,7 @@ private:
 	bool win_ = false;
 	std::atomic_bool gameEnded_;
 
-	int32_t time = 0;
+	int32_t time_ = 0;
 	std::mutex displayMutex_;
 	std::thread timerThread_;
 
@@ -41,7 +42,7 @@ private:
 	void Timer();
 	void PrintTimer(bool clear);
 public:
-	Game(int16_t Xsize, int16_t Ysize, int16_t mines);
+	Game(int16_t Xsize, int16_t Ysize, int16_t mines, COORD leftUpperCorner);
 
 	void RevealBoard();
 	void DisplayBoard(bool clear);

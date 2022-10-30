@@ -9,6 +9,8 @@ class Menu
 private:
 	using MenuItem = std::tuple<std::string, COORD, std::function<void()>>;
 
+	uint32_t cols_;
+	uint32_t rows_;
 	Alfabet alfabet_{};
 	uint32_t level_ = 0;
 	std::vector<std::tuple<int16_t, int16_t, int16_t>> levels_{
@@ -19,54 +21,9 @@ private:
 
 	uint32_t cursor_ = 0;
 	std::vector<MenuItem> activeMenu_;
-	std::vector<MenuItem> menu_{
-		{
-			"start", COORD(15, 6), [this]
-			{
-				this->Display(true);
-				this->activeMenu_ = this->difficultyMenu_;
-			}
-		},
-		{
-			"wyjscie", COORD(12, 12), [this]
-			{
-				exit(0);
-			}
-		},
-	};
-	std::vector<MenuItem> difficultyMenu_{
-		{
-			"latwy", COORD(14, 6), [this]
-			{
-				this->level_ = 0;
-				this->StartGame();
-			}
-		},
-		{
-			"sredni", COORD(13, 12), [this]
-			{
-				this->level_ = 1;
-				this->StartGame();
-			}
-		},
-		{
-			"trudny", COORD(12, 18), [this]
-			{
-				this->level_ = 2;
-				this->StartGame();
-			}
-		},
-	};
-	std::vector<MenuItem> gameOverMenu_{
-		{
-			"wyjscie", COORD(12, 18), [this]
-			{
-				this->Display(true);
-				this->PrintGameOver(true, true, INT32_MAX);
-				this->activeMenu_ = this->menu_;
-			}
-		},
-	};
+	std::vector<MenuItem> menu_;
+	std::vector<MenuItem> difficultyMenu_;
+	std::vector<MenuItem> gameOverMenu_;
 
 	std::vector<std::vector<bool>> StringToBlocks(const std::string& str) const;
 	void Print(const std::string& str, COORD startingPos, WORD consoleAtribute, bool clear) const;
@@ -75,7 +32,7 @@ private:
 	void StartGame();
 	void PrintGameOver(bool clear, bool win, int time);
 public:
-	Menu();
+	Menu(int16_t cols, int16_t rows);
 
 	void Start();
 };

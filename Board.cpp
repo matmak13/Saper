@@ -2,8 +2,7 @@
 
 #include <random>
 
-Board::Board(int16_t Xsize, int16_t Ysize, int16_t mines) :
-	xsize_(Xsize), ysize_(Ysize), mines_(mines)
+Board::Board(int16_t Xsize, int16_t Ysize, int16_t mines) : xsize_(Xsize), ysize_(Ysize), mines_(mines)
 {
 	// generate board
 	for (int16_t i = 0; i < Ysize; i++)

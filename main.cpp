@@ -17,10 +17,15 @@ void ShowConsoleCursor(bool showFlag)
 int main()
 {
 	ShowConsoleCursor(false);
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	const int16_t columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	const int16_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
 	try
 	{
-		auto menu = Menu();
+		auto menu = Menu(columns, rows);
 		menu.Start();
 	}
 	catch (std::exception& ex)

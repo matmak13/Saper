@@ -6,12 +6,13 @@
 #include "Alfabet.hpp"
 
 
-Game::Game(int16_t Xsize, int16_t Ysize, int16_t mines) :
-	cursor_({static_cast<int16_t>(Xsize / 2), static_cast<int16_t>(Ysize / 2)}),
-	checkedCellsPos_({Xsize + 3, 1}),
-	timerPos_({Xsize + 3, 5}),
-	hConsole(GetStdHandle(STD_OUTPUT_HANDLE)),
+Game::Game(int16_t Xsize, int16_t Ysize, int16_t mines, COORD leftUpperCorner) :
+	cursor_({int16_t(Xsize / 2 + leftUpperCorner.X), int16_t(Ysize / 2 + leftUpperCorner.Y)}),
+	checkedCellsPos_({int16_t(leftUpperCorner.X - 10), 1}),
+	timerPos_({int16_t(leftUpperCorner.X - 10), 5}),
+	hConsole_(GetStdHandle(STD_OUTPUT_HANDLE)),
 	board_(Xsize, Ysize, mines),
+	leftUpperCorner_(leftUpperCorner),
 	minesLeft_(mines)
 {
 }
@@ -28,7 +29,7 @@ void Game::DisplayBoard(bool clear)
 	{
 		for (int16_t j = 0; j <= board_.xsize_ + 1; j++)
 		{
-			SetConsoleCursorPosition(hConsole, {j, i});
+			SetConsoleCursorPosition(hConsole_, {j + leftUpperCorner_.X, i + leftUpperCorner_.Y});
 			if (clear)
 			{
 				std::cout << " ";
@@ -37,12 +38,12 @@ void Game::DisplayBoard(bool clear)
 
 			if (i == 0 || i == board_.ysize_ + 1 || j == 0 || j == board_.xsize_ + 1)
 			{
-				SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_RED);
 				std::cout << Alfabet::BLOCK;
 				continue;
 			}
 
-			PrintCell({j, i});
+			PrintCell({j + leftUpperCorner_.X, i + leftUpperCorner_.Y});
 		}
 	}
 
@@ -56,26 +57,32 @@ std::tuple<bool, int32_t> Game::Start()
 	while (true)
 	{
 		if (gameEnded_)
-			return {win_, time};
+			return {win_, time_};
 
 		switch (_getch())
 		{
 		case 'w':
+		case 'W':
 			MoveCursor({cursor_.X, static_cast<int16_t>(cursor_.Y - 1)});
 			break;
 		case 'a':
+		case 'A':
 			MoveCursor({static_cast<int16_t>(cursor_.X - 1), cursor_.Y});
 			break;
 		case 's':
+		case 'S':
 			MoveCursor({cursor_.X, static_cast<int16_t>(cursor_.Y + 1)});
 			break;
 		case 'd':
+		case 'D':
 			MoveCursor({static_cast<int16_t>(cursor_.X + 1), cursor_.Y});
 			break;
 		case 'q':
+		case 'Q':
 			CheckSwitch();
 			break;
 		case 'e':
+		case 'E':
 			if (!gameStarted_)
 			{
 				gameStarted_ = true;
@@ -91,8 +98,8 @@ std::tuple<bool, int32_t> Game::Start()
 
 void Game::MoveCursor(COORD newPosition)
 {
-	if (newPosition.X > board_.xsize_ || newPosition.X == 0 ||
-		newPosition.Y > board_.ysize_ || newPosition.Y == 0)
+	if (newPosition.X > board_.xsize_ + leftUpperCorner_.X || newPosition.X == leftUpperCorner_.X ||
+		newPosition.Y > board_.ysize_ + leftUpperCorner_.Y || newPosition.Y == leftUpperCorner_.Y)
 		return;
 
 	const auto oldCursor = cursor_;
@@ -107,10 +114,10 @@ void Game::CheckSwitch()
 	if (const auto& cell = getCell(cursor_); cell.isRevealed)
 		return;
 
-	board_.CheckSwitch(cursor_.X - 1, cursor_.Y - 1) ? minesLeft_-- : minesLeft_++;
+	board_.CheckSwitch(cursor_.X - 1 - leftUpperCorner_.X, cursor_.Y - 1 - leftUpperCorner_.Y) ? minesLeft_-- : minesLeft_++;
 	if (minesLeft_ == -1)
 	{
-		board_.CheckSwitch(cursor_.X - 1, cursor_.Y - 1) ? minesLeft_-- : minesLeft_++;
+		board_.CheckSwitch(cursor_.X - 1 - leftUpperCorner_.X, cursor_.Y - 1 - leftUpperCorner_.Y) ? minesLeft_-- : minesLeft_++;
 		return;
 	}
 
@@ -122,7 +129,7 @@ void Game::CheckSwitch()
 
 void Game::RevealCell()
 {
-	auto cells = board_.RevealCell(cursor_.X - 1, cursor_.Y - 1);
+	auto cells = board_.RevealCell(cursor_.X - 1 - leftUpperCorner_.X, cursor_.Y - 1 - leftUpperCorner_.Y);
 
 	for (const auto& cell : cells)
 		if (cell.isMine)
@@ -130,10 +137,10 @@ void Game::RevealCell()
 
 	displayMutex_.lock();
 	for (auto cell : cells)
-		PrintCell({cell.x + 1, cell.y + 1});
+		PrintCell({cell.x + 1 + leftUpperCorner_.X, cell.y + 1 + leftUpperCorner_.Y});
 	revealedCells_ += cells.size();
 
-	SetConsoleCursorPosition(hConsole, {cursor_.X + 1, cursor_.Y});
+	SetConsoleCursorPosition(hConsole_, {cursor_.X + 1, cursor_.Y});
 	displayMutex_.unlock();
 
 	if (revealedCells_ == board_.ysize_ * board_.xsize_ - board_.mines_)
@@ -142,49 +149,49 @@ void Game::RevealCell()
 
 Cell Game::getCell(COORD pos)
 {
-	return board_.board_[pos.Y - 1][pos.X - 1];
+	return board_.board_[pos.Y - 1 - leftUpperCorner_.Y][pos.X - 1 - leftUpperCorner_.X];
 }
 
 void Game::PrintCell(COORD pos)
 {
 	const auto cell = getCell(pos);
 
-	SetConsoleCursorPosition(hConsole, pos);
+	SetConsoleCursorPosition(hConsole_, pos);
 
 	if (cell.isChecked)
 	{
 		if (cursor_.X == pos.X && cursor_.Y == pos.Y)
-			SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+			SetConsoleTextAttribute(hConsole_, FOREGROUND_RED);
 		else
-			SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+			SetConsoleTextAttribute(hConsole_, FOREGROUND_RED | FOREGROUND_INTENSITY);
 	}
 	else
 	{
 		if (cursor_.X == pos.X && cursor_.Y == pos.Y)
-			SetConsoleTextAttribute(hConsole, 13);
+			SetConsoleTextAttribute(hConsole_, 13);
 		else if (!cell.isRevealed)
-			SetConsoleTextAttribute(hConsole, 7);
+			SetConsoleTextAttribute(hConsole_, 7);
 		else
 		{
 			if (cell.minesAround == 0)
-				SetConsoleTextAttribute(hConsole, 7);
+				SetConsoleTextAttribute(hConsole_, 7);
 			else if (cell.minesAround == 1)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_BLUE);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_INTENSITY | FOREGROUND_BLUE);
 			else if (cell.minesAround == 2)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_GREEN);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_INTENSITY | FOREGROUND_GREEN);
 			else if (cell.minesAround == 3)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_RED);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_INTENSITY | FOREGROUND_RED);
 			else if (cell.minesAround == 4)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_BLUE);
 			else if (cell.minesAround == 5)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_RED);
 			else if (cell.minesAround == 6)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_BLUE);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_GREEN | FOREGROUND_BLUE);
 			else if (cell.minesAround == 7)
-				SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
+				SetConsoleTextAttribute(hConsole_, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN);
 			else if (cell.minesAround == 8)
 				SetConsoleTextAttribute(
-					hConsole, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+					hConsole_, FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 	}
 
@@ -213,27 +220,27 @@ void Game::GameOver(bool win)
 
 void Game::PrintMinesLeft(bool clear)
 {
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-	SetConsoleCursorPosition(hConsole, checkedCellsPos_);
+	SetConsoleTextAttribute(hConsole_, FOREGROUND_RED);
+	SetConsoleCursorPosition(hConsole_, checkedCellsPos_);
 	if (clear)
 		std::cout << "    ";
 	else
 		std::cout << "MINY";
-	SetConsoleCursorPosition(hConsole, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
+	SetConsoleCursorPosition(hConsole_, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
 	std::cout << "  ";
-	SetConsoleCursorPosition(hConsole, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
+	SetConsoleCursorPosition(hConsole_, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
 	if (!clear)
 		std::cout << minesLeft_;
 
-	SetConsoleTextAttribute(hConsole, 7);
-	SetConsoleCursorPosition(hConsole, cursor_);
+	SetConsoleTextAttribute(hConsole_, 7);
+	SetConsoleCursorPosition(hConsole_, cursor_);
 }
 
 void Game::Timer()
 {
 	while (!gameEnded_)
 	{
-		time++;
+		time_++;
 		PrintTimer(false);
 
 		using namespace std::chrono_literals;
@@ -246,20 +253,20 @@ void Game::Timer()
 void Game::PrintTimer(bool clear)
 {
 	displayMutex_.lock();
-	SetConsoleTextAttribute(hConsole, 7);
-	SetConsoleCursorPosition(hConsole, timerPos_);
+	SetConsoleTextAttribute(hConsole_, 7);
+	SetConsoleCursorPosition(hConsole_, timerPos_);
 	if (clear)
 		std::cout << "    ";
 	else
 		std::cout << "Czas";
 
-	SetConsoleCursorPosition(hConsole, {timerPos_.X, timerPos_.Y + 1});
+	SetConsoleCursorPosition(hConsole_, {timerPos_.X, timerPos_.Y + 1});
 	if (clear)
 		std::cout << "     ";
 	else
-		std::cout << time;
+		std::cout << time_;
 
-	SetConsoleCursorPosition(hConsole, cursor_);
+	SetConsoleCursorPosition(hConsole_, cursor_);
 	displayMutex_.unlock();
 }
 
@@ -273,10 +280,11 @@ void Game::BlowUp()
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dist(25, 50);
-	SetConsoleTextAttribute(hConsole, 7);
+	SetConsoleTextAttribute(hConsole_, 7);
 	const auto mines = board_.allMines_;
 
-	COORD leftTop = cursor_, rightBot = cursor_;
+	COORD leftTop = {cursor_.X - leftUpperCorner_.X, cursor_.Y - leftUpperCorner_.Y},
+	      rightBot = {cursor_.X - leftUpperCorner_.X, cursor_.Y - leftUpperCorner_.Y};
 	int booms = 0;
 	std::vector boomed(board_.ysize_, std::vector<bool>(board_.xsize_));
 
@@ -291,7 +299,7 @@ void Game::BlowUp()
 					continue;
 
 				const Cell& cell = horizontal ? board_.board_[cord - 1][i - 1] : board_.board_[i - 1][cord - 1];
-				SetConsoleCursorPosition(hConsole, {cell.x + 1, cell.y + 1});
+				SetConsoleCursorPosition(hConsole_, {cell.x + 1 + leftUpperCorner_.X, cell.y + 1 + leftUpperCorner_.Y});
 				std::cout << "*";
 				booms++;
 				bomed = true;
