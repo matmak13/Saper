@@ -7,8 +7,18 @@ class Alfabet
 public:
 	constexpr static char SPACE = 32;
 	constexpr static char BLOCK = -37;
+	using Letter = std::vector<std::vector<bool>>;
 
 	const std::map<char, std::vector<std::vector<bool>>> alfabet{
+		{
+			NULL, {
+				{1, 1, 1},
+				{1, 1, 1},
+				{1, 1, 1},
+				{1, 1, 1},
+				{1, 1, 1},
+			}
+		},
 		{
 			'a', {
 				{0, 1, 1, 0},
