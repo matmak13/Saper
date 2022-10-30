@@ -1,5 +1,4 @@
-#pragma once
-#include <map>
+﻿#pragma once
 #include <vector>
 #include <functional>
 #include "Alfabet.hpp"
@@ -8,6 +7,8 @@
 class Menu
 {
 private:
+	using MenuItem = std::tuple<std::string, COORD, std::function<void()>>;
+
 	Alfabet alfabet_{};
 	uint32_t level_ = 0;
 	std::vector<std::tuple<int16_t, int16_t, int16_t>> levels_{
@@ -17,8 +18,8 @@ private:
 	};
 
 	uint32_t cursor_ = 0;
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> activeMenu_;
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> menu_{
+	std::vector<MenuItem> activeMenu_;
+	std::vector<MenuItem> menu_{
 		{
 			"start", COORD(15, 6), [this]
 			{
@@ -33,7 +34,7 @@ private:
 			}
 		},
 	};
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> difficultyMenu_{
+	std::vector<MenuItem> difficultyMenu_{
 		{
 			"latwy", COORD(14, 6), [this]
 			{
@@ -56,7 +57,7 @@ private:
 			}
 		},
 	};
-	std::vector<std::tuple<std::string, COORD, std::function<void()>>> gameOverMenu_{
+	std::vector<MenuItem> gameOverMenu_{
 		{
 			"wyjscie", COORD(12, 18), [this]
 			{
