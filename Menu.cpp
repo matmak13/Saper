@@ -8,8 +8,6 @@
 
 Menu::Menu(const int16_t cols, const int16_t rows) : cols_(cols), rows_(rows)
 {
-	auto str1 = StringToBlocks("start");
-	auto str2 = StringToBlocks("wyjscie");
 	menu_ = {
 		{
 			"start", COORD(cols / 2, 6), [this]
