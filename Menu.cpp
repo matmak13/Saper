@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Alfabet.hpp"
+#include "Game.hpp"
 
 Menu::Menu(const int16_t cols, const int16_t rows) : cols_(cols), rows_(rows)
 {
@@ -78,24 +79,52 @@ void Menu::Display(const bool clear) const
 	}
 }
 
+bool Menu::checkIfControlUsed(controls control, int ch, std::vector<std::tuple<controls, std::vector<int>>> controls)
+{
+	const auto& vec = std::get<1>(controls.at(control));
+	return std::ranges::find(vec, ch) != vec.end();
+}
+
+
+bool Menu::checkIfControlUsed(controls control, const int ch) const
+{
+	return checkIfControlUsed(control, ch, controls_);
+}
+
+int Menu::getKey()
+{
+	auto ch = _getch();
+	if (ch == 224)
+		ch += _getch();
+
+	return ch;
+}
+
 void Menu::Start()
 {
 	while (!stop_)
 	{
 		Display(false);
 
-		switch (_getch())
+		const auto ch = getKey();
+
+		controls key = none;
+		if (checkIfControlUsed(up, ch))
+			key = up;
+		else if (checkIfControlUsed(down, ch))
+			key = down;
+		else if (checkIfControlUsed(use, ch))
+			key = use;
+
+		switch (key)
 		{
-		case 'w':
-		case 'W':
+		case up:
 			cursor_ = (cursor_ - 1) % activeMenu_.size();
 			break;
-		case 's':
-		case 'S':
+		case down:
 			cursor_ = (cursor_ + 1) % activeMenu_.size();
 			break;
-		case 'e':
-		case 'E':
+		case use:
 			Use();
 			break;
 		default:
@@ -168,7 +197,7 @@ void Menu::Use() const
 void Menu::StartGame(std::tuple<int16_t, int16_t, int16_t> level)
 {
 	auto& [x, y, mines] = level;
-	auto game = Game(x, y, mines, COORD{int16_t(cols_ / 2), 0});
+	auto game = Game(x, y, mines, COORD{int16_t(cols_ / 2), 0}, controls_);
 	game.DisplayBoard(false);
 	auto [win, time] = game.Start();
 	game.DisplayBoard(true);
@@ -247,7 +276,7 @@ std::tuple<int16_t, int16_t, int16_t> Menu::CustomLevel()
 	while (!ready)
 	{
 		Display(false);
-		const auto ch = _getch();
+		const auto ch = getKey();
 		if ('0' <= ch && ch <= '9')
 		{
 			const auto value = ch - 48;
@@ -264,22 +293,26 @@ std::tuple<int16_t, int16_t, int16_t> Menu::CustomLevel()
 			cursorMoved = false;
 			Use();
 		}
-		switch (ch)
+		controls key = none;
+		if (checkIfControlUsed(up, ch))
+			key = up;
+		else if (checkIfControlUsed(down, ch))
+			key = down;
+		else if (checkIfControlUsed(use, ch))
+			key = use;
+		switch (key)
 		{
-		case 'w':
-		case 'W':
+		case up:
 			limit();
 			cursor_ = (cursor_ - 1) % activeMenu_.size();
 			cursorMoved = true;
 			break;
-		case 's':
-		case 'S':
+		case down:
 			limit();
 			cursor_ = (cursor_ + 1) % activeMenu_.size();
 			cursorMoved = true;
 			break;
-		case 'e':
-		case 'E':
+		case use:
 			Use();
 			break;
 		default:

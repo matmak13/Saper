@@ -1,7 +1,4 @@
-﻿#include <iostream>
-
-#include "Game.hpp"
-#include "Menu.hpp"
+﻿#include "Menu.hpp"
 
 void ShowConsoleCursor(bool showFlag)
 {

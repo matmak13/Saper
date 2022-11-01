@@ -125,10 +125,3 @@ std::vector<Cell> Board::GetCellsAround(int16_t x, int16_t y, std::function<bool
 
 	return cells;
 }
-
-void Board::RevealBoard()
-{
-	for (auto& row : board_)
-		for (auto& cell : row)
-			cell.Reveal();
-}

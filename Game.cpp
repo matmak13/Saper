@@ -1,25 +1,20 @@
 ﻿#include "Game.hpp"
 
-#include <conio.h>
 #include <iostream>
 #include <random>
 #include "Alfabet.hpp"
 
 
-Game::Game(int16_t Xsize, int16_t Ysize, int16_t mines, COORD leftUpperCorner) :
+Game::Game(int16_t Xsize, int16_t Ysize, int16_t mines, COORD leftUpperCorner, std::vector<std::tuple<Menu::controls, std::vector<int>>> controls) :
 	cursor_({int16_t(Xsize / 2 + leftUpperCorner.X), int16_t(Ysize / 2 + leftUpperCorner.Y)}),
 	checkedCellsPos_({int16_t(leftUpperCorner.X - 10), 1}),
 	timerPos_({int16_t(leftUpperCorner.X - 10), 5}),
-	hConsole_(GetStdHandle(STD_OUTPUT_HANDLE)),
-	board_(Xsize, Ysize, mines),
 	leftUpperCorner_(leftUpperCorner),
+	hConsole_(GetStdHandle(STD_OUTPUT_HANDLE)),
+	controls_(controls),
+	board_(Xsize, Ysize, mines),
 	minesLeft_(mines)
 {
-}
-
-void Game::RevealBoard()
-{
-	board_.RevealBoard();
 }
 
 void Game::DisplayBoard(bool clear)
@@ -59,30 +54,42 @@ std::tuple<bool, int32_t> Game::Start()
 		if (gameEnded_)
 			return {win_, time_};
 
-		switch (_getch())
+		using enum Menu::controls;
+
+		const auto ch = Menu::getKey();
+		Menu::controls key = none;
+
+		if (Menu::checkIfControlUsed(up, ch, controls_))
+			key = up;
+		else if (Menu::checkIfControlUsed(down, ch, controls_))
+			key = down;
+		else if (Menu::checkIfControlUsed(left, ch, controls_))
+			key = left;
+		else if (Menu::checkIfControlUsed(right, ch, controls_))
+			key = right;
+		else if (Menu::checkIfControlUsed(check, ch, controls_))
+			key = check;
+		else if (Menu::checkIfControlUsed(use, ch, controls_))
+			key = use;
+
+		switch (key)
 		{
-		case 'w':
-		case 'W':
+		case up:
 			MoveCursor({cursor_.X, static_cast<int16_t>(cursor_.Y - 1)});
 			break;
-		case 'a':
-		case 'A':
+		case left:
 			MoveCursor({static_cast<int16_t>(cursor_.X - 1), cursor_.Y});
 			break;
-		case 's':
-		case 'S':
+		case down:
 			MoveCursor({cursor_.X, static_cast<int16_t>(cursor_.Y + 1)});
 			break;
-		case 'd':
-		case 'D':
+		case right:
 			MoveCursor({static_cast<int16_t>(cursor_.X + 1), cursor_.Y});
 			break;
-		case 'q':
-		case 'Q':
+		case check:
 			CheckSwitch();
 			break;
-		case 'e':
-		case 'E':
+		case use:
 			if (!gameStarted_)
 			{
 				gameStarted_ = true;
