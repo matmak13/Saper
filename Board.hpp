@@ -1,5 +1,6 @@
 #pragma once
 #include <cinttypes>
+#include <functional>
 #include <vector>
 #include "Cell.hpp"
 
@@ -16,6 +17,6 @@ public:
 
 	bool CheckSwitch(int16_t x, int16_t y);
 	std::vector<Cell> RevealCell(int16_t x, int16_t y);
-	std::vector<Cell> GetCellsAround(int16_t x, int16_t y, bool (*predicate)(Cell)) const;
+	std::vector<Cell> GetCellsAround(int16_t x, int16_t y, std::function<bool(Cell)> predicate) const;
 	void RevealBoard();
 };

@@ -133,7 +133,10 @@ void Game::RevealCell()
 
 	for (const auto& cell : cells)
 		if (cell.isMine)
+		{
 			GameOver(false);
+			return;
+		}
 
 	displayMutex_.lock();
 	for (auto cell : cells)
@@ -216,6 +219,8 @@ void Game::GameOver(bool win)
 	win_ = win;
 	if (!win)
 		BlowUp();
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 void Game::PrintMinesLeft(bool clear)
@@ -227,7 +232,7 @@ void Game::PrintMinesLeft(bool clear)
 	else
 		std::cout << "MINY";
 	SetConsoleCursorPosition(hConsole_, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
-	std::cout << "  ";
+	std::cout << "   ";
 	SetConsoleCursorPosition(hConsole_, {checkedCellsPos_.X, checkedCellsPos_.Y + 1});
 	if (!clear)
 		std::cout << minesLeft_;

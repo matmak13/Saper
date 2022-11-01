@@ -1,4 +1,4 @@
-#include "Board.hpp"
+﻿#include "Board.hpp"
 
 #include <random>
 
@@ -59,9 +59,11 @@ std::vector<Cell> Board::RevealCell(int16_t x, int16_t y)
 	auto& cell = board_[y][x];
 	std::vector<Cell> revealedCells{};
 
+	// Nie odkrywamy zaznaczonej komórki
 	if (cell.isChecked)
 		return revealedCells;
 
+	// Przypadek, gdy klikamy na odkrytą komórkę
 	if (cell.isRevealed)
 	{
 		auto checkedCellsAround = GetCellsAround(x, y, [](Cell cell) { return cell.isChecked; }).size();
@@ -87,6 +89,7 @@ std::vector<Cell> Board::RevealCell(int16_t x, int16_t y)
 	if (cell.minesAround > 0)
 		return revealedCells;
 
+	// Przypadek, gdy wokół komórki nie ma min
 	auto cellsAround = GetCellsAround(x, y, [](Cell cell) { return !cell.isRevealed && !cell.isChecked; });
 	for (auto& cellAround : cellsAround)
 	{
@@ -100,7 +103,7 @@ std::vector<Cell> Board::RevealCell(int16_t x, int16_t y)
 	return revealedCells;
 }
 
-std::vector<Cell> Board::GetCellsAround(int16_t x, int16_t y, bool (*predicate)(Cell)) const
+std::vector<Cell> Board::GetCellsAround(int16_t x, int16_t y, std::function<bool(Cell)> predicate) const
 {
 	std::vector<Cell> cells{};
 

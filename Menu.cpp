@@ -106,7 +106,7 @@ void Menu::Start()
 
 std::vector<std::vector<bool>> Menu::StringToBlocks(const std::string& str) const
 {
-	Alfabet::Letter string(5);
+	std::vector<std::vector<bool>> string(5);
 
 	for (const auto c : str)
 	{
@@ -143,8 +143,6 @@ void Menu::Print(const std::string& str, const COORD startingPos, WORD consoleAt
 		SetConsoleTextAttribute(hConsole, 7);
 
 	int16_t Y = 1;
-	constexpr char space = Alfabet::SPACE,
-	               block = Alfabet::BLOCK;
 	const auto blocks = StringToBlocks(str);
 	SetConsoleCursorPosition(hConsole, {int16_t(startingPos.X - blocks.front().size() / 2), startingPos.Y});
 
@@ -153,9 +151,9 @@ void Menu::Print(const std::string& str, const COORD startingPos, WORD consoleAt
 		for (const auto cell : row)
 		{
 			if (!clear && cell)
-				std::cout << block;
+				std::cout << Alfabet::BLOCK;
 			else
-				std::cout << space;
+				std::cout << Alfabet::SPACE;
 		}
 
 		SetConsoleCursorPosition(hConsole, {int16_t(startingPos.X - blocks.front().size() / 2), int16_t(startingPos.Y + Y++)});
@@ -191,7 +189,7 @@ void Menu::PrintGameOver(const bool clear, const bool win, const int time)
 
 std::tuple<int16_t, int16_t, int16_t> Menu::CustomLevel()
 {
-	uint32_t col = 8, row = 8, mine = 10;
+	int32_t col = 8, row = 8, mine = 10;
 	const std::vector variables{&col, &row, &mine};
 	const auto limit = [this, &col, &row, &mine]
 	{
@@ -207,8 +205,8 @@ std::tuple<int16_t, int16_t, int16_t> Menu::CustomLevel()
 				row = 8;
 			if (mine + 1 > col * row - 1)
 				mine = col * row - 1;
-			if (mine < 10)
-				mine = 10;
+			if (mine < col * row * 0.1)
+				mine = col * row * 0.1;
 			Use();
 		}
 	};
@@ -257,8 +255,11 @@ std::tuple<int16_t, int16_t, int16_t> Menu::CustomLevel()
 			const auto val = variables[cursor_];
 			if (cursorMoved)
 				*val = 0;
-			*val *= 10;
-			*val += value;
+			if (*val * 10 >= 0)
+			{
+				*val *= 10;
+				*val += value;
+			}
 
 			cursorMoved = false;
 			Use();
