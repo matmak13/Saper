@@ -7,8 +7,9 @@
 class Menu
 {
 private:
-	using MenuItem = std::tuple<std::string, COORD, std::function<void()>>;
+	using MenuItem = std::tuple<std::string*, COORD, std::function<void()>>;
 
+	bool stop_ = false;
 	uint32_t cols_;
 	uint32_t rows_;
 	Alfabet alfabet_{};
@@ -29,10 +30,12 @@ private:
 	void Print(const std::string& str, COORD startingPos, WORD consoleAtribute, bool clear) const;
 	void Display(bool clear) const;
 	void Use() const;
-	void StartGame();
+	void StartGame(std::tuple<int16_t, int16_t, int16_t> level);
 	void PrintGameOver(bool clear, bool win, int time);
+	std::tuple<int16_t, int16_t, int16_t> CustomLevel();
 public:
 	Menu(int16_t cols, int16_t rows);
+	~Menu();
 
 	void Start();
 };
